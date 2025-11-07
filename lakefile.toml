@@ -1,0 +1,10 @@
+name = "Cochain"
+version = "0.1.0"
+defaultTargets = ["cochain"]
+
+[[lean_lib]]
+name = "Cochain"
+
+[[lean_exe]]
+name = "cochain"
+root = "Main"
