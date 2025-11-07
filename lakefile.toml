@@ -5,6 +5,11 @@ defaultTargets = ["cochain"]
 [[lean_lib]]
 name = "Cochain"
 
-[[lean_exe]]
-name = "cochain"
-root = "Main"
+[[require]]
+name = "mathlib"
+scope = "leanprover-community"
+rev = "v4.24.0"
+
+[[require]]
+name = "LieRinehart"
+git = "https://github.com/Chen2357/LieRinehart"
