@@ -101,14 +101,18 @@ variable [CommRing A] [LieRing L] [LRAlgebra A L]
 variable [AddCommGroup M] [Module A M] [LieRingModule L M] [LRModule A L M] [LRModule.IsTrivial A L M]
 
 @[simp]
-theorem d_apply_zero (f : L [⋀^Fin 0]→ₗ[A] M) (v : Fin 1 → L) : d A L M 0 f v = ⁅v 0, f ![]⁆ := by
-  simp [d, d_aux, d_aux_zero]
-
-@[simp]
 theorem curryLeft_d_of_zero (f : L [⋀^Fin 0]→ₗ[A] M) (x : L) : (d A L M 0 f).curryLeft x = ⁅x, f⁆ := (d_aux A L M 0).curryLeft_d x f
 
 @[simp]
+theorem d_apply_zero (f : L [⋀^Fin 0]→ₗ[A] M) (v : Fin 1 → L) : d A L M 0 f v = ⁅v 0, f ![]⁆ := by
+  simp [d]
+
+@[simp]
 theorem curryLeft_d_of_succ (n : ℕ) (f : L [⋀^Fin (n+1)]→ₗ[A] M) (x : L) : (d A L M (n+1) f).curryLeft x = ⁅x, f⁆ - d A L M (n) (f.curryLeft x) := (d_aux A L M (n+1)).curryLeft_d x f
+
+@[simp]
+theorem d_apply_succ (f : L [⋀^Fin (n+1)]→ₗ[A] M) (v : Fin (n + 2) → L) : d A L M (n+1) f v = ⁅v 0, f⁆ (Fin.tail v) - d A L M (n) (f.curryLeft (v 0)) (Fin.tail v) := by
+  simp [d]
 
 theorem d_lie (n : ℕ) (x : L) (f : L [⋀^Fin n]→ₗ[A] M) :
   d A L M n (⁅x, f⁆) = ⁅x, d A L M n f⁆ := by
