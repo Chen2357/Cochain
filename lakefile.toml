@@ -13,3 +13,4 @@ rev = "v4.24.0"
 [[require]]
 name = "LieRinehart"
 git = "https://github.com/Chen2357/LieRinehart"
+rev = "main"
