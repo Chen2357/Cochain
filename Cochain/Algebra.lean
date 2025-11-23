@@ -1,6 +1,6 @@
 import Cochain.Mul
-import Mathlib.Algebra.Lie.DirectSum
-import Mathlib.Algebra.Group.TransferInstance
+import Mathlib.Algebra.GradedMonoid
+import Mathlib.Algebra.DirectSum.Algebra
 
 section Cochain
 
@@ -13,49 +13,55 @@ variable {A L M : Type*}
 variable [CommRing A] [LieRing L] [LRAlgebra A L]
 variable [CommRing M] [Algebra A M]
 
-instance : Mul (Cochain A L M) where
-  mul f g := (toModule M ℕ (Cochain A L M →ₗ[M] Cochain A L M) <| fun i => {
-    toFun f := toModule M ℕ (Cochain A L M) <| fun j => (lof M ℕ (fun k => L [⋀^Fin k]→ₗ[A] M) (i + j)) ∘ₗ AlternatingMap.mul i j (i + j) f
-    map_add' := by intros; ext; simp
-    map_smul' := by intros; ext; simp
-  }) f g
+instance : GNonUnitalNonAssocSemiring (fun n => L [⋀^Fin n]→ₗ[A] M) where
+  mul f g := AlternatingMap.mul _ _ _ f g
+  mul_zero := by simp
+  zero_mul := by simp
+  mul_add := by simp
+  add_mul := by simp
+
+instance : GradedMonoid.GOne (fun n => L [⋀^Fin n]→ₗ[A] M) where
+  one := 1
+
+instance : GSemiring (fun n => L [⋀^Fin n]→ₗ[A] M) where
+  mul_one a := by apply Sigma.ext; simp; simp [GradedMonoid.GOne.one, GradedMonoid.GMul.mul]
+  one_mul a := by
+    apply Sigma.ext
+    simp
+    induction a
+    rename_i n f
+    simp
+    have : n = 0 + n := by linarith
+    revert f
+    apply Eq.ndrec (motive := fun t => ∀ f, ((AlternatingMap.mul 0 n t) 1) f ≍ f) ?_ this
+    simp
+  mul_assoc a b c := by
+    rcases a with ⟨n, f⟩
+    rcases b with ⟨m, g⟩
+    rcases c with ⟨l, h⟩
+    apply Sigma.ext
+    simp
+    linarith
+    simp [GradedMonoid.GMul.mul]
+    rw [AlternatingMap.mul_assoc f g h]
+    have : (n + m) + l = n + (m + l) := by linarith
+    rw [this]
+  natCast n := n
+  natCast_zero := by simp
+  natCast_succ n := by simp [GradedMonoid.GOne.one]
+
+instance : Ring (Cochain A L M) where
 
 @[simp]
 def mul_lof {n m} (f : L [⋀^Fin n]→ₗ[A] M) (g : L [⋀^Fin m]→ₗ[A] M) :
   (lof M _ _ _ f: Cochain A L M) * (lof M _ _ _ g : Cochain A L M) = lof M _ _ (n + m) (AlternatingMap.mul _ _ _ f g) := by
-    ext
-    simp [Mul.mul, HMul.hMul]
+    ext1 i
+    simp [lof_eq_of, HMul.hMul, Mul.mul, GradedMonoid.GMul.mul]
 
 @[simp]
 def mul_of {n m} (f : L [⋀^Fin n]→ₗ[A] M) (g : L [⋀^Fin m]→ₗ[A] M) :
   (of _ _ f : Cochain A L M) * (of _ _ g : Cochain A L M) = of _ (n + m) (AlternatingMap.mul _ _ _ f g) :=
   mul_lof f g
-
-instance : Distrib (Cochain A L M) where
-  left_distrib := by simp [Mul.mul, HMul.hMul]
-  right_distrib := by simp [Mul.mul, HMul.hMul]
-
-instance : MulZeroClass (Cochain A L M) where
-  zero_mul f := by
-    have : (0 : Cochain A L M) = of _ 0 0 := by
-      ext
-      simp
-    induction f using DirectSum.induction_on
-    case zero =>
-      rw [this, mul_of]
-      simp
-    case add => simp [mul_add, *, -this]
-    case of n f => rw [this, mul_of]; simp
-  mul_zero f := by
-    have : (0 : Cochain A L M) = of _ 0 0 := by
-      ext
-      simp
-    induction f using DirectSum.induction_on
-    case zero =>
-      rw [this, mul_of]
-      simp
-    case add => simp [add_mul, *, -this]
-    case of n f => rw [this, mul_of]; simp
 
 @[simp]
 theorem mul_apply_zero (f g : Cochain A L M) :
@@ -86,102 +92,44 @@ theorem mul_apply_zero (f g : Cochain A L M) :
     case add => rw [mul_add]; simp [*]
   case add => rw [add_mul]; simp [*]
 
-instance : NonUnitalSemiring (Cochain A L M) where
-  mul_assoc f g h := by
-    induction f using DirectSum.induction_on
-    case zero => rfl
-    case add => simp [add_mul, *]
-    case of n f =>
-      induction g using DirectSum.induction_on
-      case zero => simp
-      case add => simp [add_mul, mul_add, *]
-      case of m g =>
-        induction h using DirectSum.induction_on
-        case zero => simp
-        case add h₁ h₂ ih₁ ih₂ =>
-          simp [mul_add, ←ih₁, ←ih₂]
-        case of l h =>
-          simp
-          rw [AlternatingMap.mul_assoc f g h]
-          have : n + m + l = n + (m + l) := by linarith
-          rw [this]
-
 instance : One (Cochain A L M) where
   one := of _ 0 (constOfIsEmpty A L (Fin 0) 1)
 
-theorem one_def : (1 : Cochain A L M) = of _ 0 (constOfIsEmpty A L (Fin 0) 1) := rfl
+theorem Cochain.one_def : (1 : Cochain A L M) = of _ 0 (constOfIsEmpty A L (Fin 0) 1) := rfl
 
-instance : Semiring (Cochain A L M) where
-  one_mul f := by
-    induction f using DirectSum.induction_on
-    case zero => exact mul_zero 1
-    case add => simp [mul_add, *]
-    case of n f =>
-      ext m v
-      simp [one_def]
-      have : 0 + n = n := by linarith
-      rw [this]
-      simp
-  mul_one f := by
-    induction f using DirectSum.induction_on
-    case zero => rfl
-    case add => simp [add_mul, *]
-    case of n f =>
-      simp [one_def]
+@[simp]
+theorem one_apply_zero : (1 : Cochain A L M) 0 = constOfIsEmpty A L (Fin 0) 1 := rfl
 
-instance : Algebra M (Cochain A L M) where
-  algebraMap := {
-    toFun := fun r => lof M ℕ (fun k => L [⋀^Fin k]→ₗ[A] M) 0 (constOfIsEmpty A L (Fin 0) r)
-    map_one' := by simp [lof_eq_of, one_def]
-    map_mul' := by
-      intros
-      ext i v
+theorem one_apply_ne_zero (n : ℕ) (hn : n ≠ 0) : (1 : Cochain A L M) n = 0 := by
+  rw [Cochain.one_def]
+  rw [of_eq_of_ne]
+  exact hn
+
+@[simp]
+theorem one_apply_succ (n : ℕ) : (1 : Cochain A L M) (n + 1) = 0 := rfl
+
+instance : GAlgebra M (fun n => L [⋀^Fin n]→ₗ[A] M) where
+  toFun := ofIsEmpty.toAddMonoidHom
+  map_one := rfl
+  map_mul := by intros; rfl
+  commutes r x := by
+    rcases x with ⟨n, f⟩
+    apply Sigma.ext
+    . simp
+      apply add_comm
+    . simp [GradedMonoid.GMul.mul, GradedMonoid.mk]
+      have : n = 0 + n := by linarith
+      revert f
+      apply Eq.ndrec (motive := fun t => ∀ f, (AlternatingMap.mul 0 n t) (constOfIsEmpty A L (Fin 0) r) f ≍ r • f) ?_ this
       simp
-      cases i
-      . simp
-        rw [lof_eq_of, DirectSum.smul_apply]
-        simp
-      . rw [lof_eq_of, of_eq_of_ne, DirectSum.smul_apply, lof_eq_of, of_eq_of_ne]
-        all_goals simp
-    map_zero' := by
-      ext i v
-      cases i
-      . simp
-      . rw [lof_eq_of, of_eq_of_ne]
-        all_goals simp
-    map_add' := by
-      intros
-      ext i v
-      cases i
-      . simp
-      . rw [DirectSum.add_apply]
-        rw [lof_eq_of, of_eq_of_ne]
-        rw [lof_eq_of, of_eq_of_ne]
-        rw [lof_eq_of, of_eq_of_ne]
-        all_goals simp
-  }
-  commutes' := by
-    intros r x
-    simp
-    induction x using DirectSum.induction_on
-    case zero => simp
-    case add => simp [mul_add, *, add_mul]
-    case of n f =>
-      rw [lof_eq_of]
+  smul_def r x := by
+    rcases x with ⟨n, f⟩
+    apply Sigma.ext
+    . simp [GradedMonoid.mk]
+    . simp [GradedMonoid.GMul.mul, GradedMonoid.mk]
+      have : n = 0 + n := by linarith
+      revert f
+      apply Eq.ndrec (motive := fun t => ∀ f, r • f ≍ (AlternatingMap.mul 0 n t) (constOfIsEmpty A L (Fin 0) r) f) ?_ this
       simp
-      rw [(by apply zero_add : 0 + n = n)]
-      simp
-  smul_def' := by
-    intros r f
-    ext n v
-    simp
-    induction f using DirectSum.induction_on
-    case zero => simp
-    case of k f =>
-      simp [←lof_eq_of M]
-      have : 0 + k = k := by linarith
-      rw [this]
-      simp
-    case add => simp [mul_add, *]
 
 end Cochain

@@ -25,6 +25,12 @@ def ofIsEmptyLinear : M ≃ₗ[M] L [⋀^Fin 0]→ₗ[A] M := {
 instance : Mul (L [⋀^Fin 0]→ₗ[A] M) := ofIsEmptyLinear.symm.toEquiv.mul
 instance : One (L [⋀^Fin 0]→ₗ[A] M) := ofIsEmptyLinear.symm.one
 
+@[simp]
+theorem mul_apply (f g : L [⋀^Fin 0]→ₗ[A] M) : (f * g) ![] = f ![] * g ![] := rfl
+
+@[simp]
+theorem one_apply : (1 : L [⋀^Fin 0]→ₗ[A] M) ![] = 1 := rfl
+
 instance : CommSemiring (L [⋀^Fin 0]→ₗ[A] M) where
   left_distrib := by intros; ext; simp [ofIsEmptyLinear.symm.mul_def, mul_add]
   right_distrib := by intros; ext; simp [ofIsEmptyLinear.symm.mul_def, add_mul]
