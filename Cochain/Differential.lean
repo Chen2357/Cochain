@@ -1,8 +1,9 @@
 import LieRinehart.Alternating
+import Cochain.Basic
 
 open AlternatingMap
 
-namespace Cochain
+namespace AlternatingMap
 
 section
 
@@ -150,5 +151,24 @@ theorem d_d_apply (n : ℕ) (f : L [⋀^Fin n]→ₗ[A] M) : d A L M _ (d A L M 
     simp [h]
     simp [←curryLeftLinearMap_apply]
     simp [d_lie]
+
+end AlternatingMap
+
+open DirectSum
+
+namespace Cochain
+
+def d (A L M : Type*)
+  [CommRing A] [LieRing L] [LRAlgebra A L]
+  [AddCommGroup M] [Module A M] [LieRingModule L M] [LRModule A L M] [LRModule.IsTrivial A L M] :
+  Cochain A L M →+ Cochain A L M := toAddMonoid fun n => AddMonoidHom.comp (of (fun k => L [⋀^Fin k]→ₗ[A] M) (n+1)) (AlternatingMap.d A L M n)
+
+variable {A L M : Type*}
+variable [CommRing A] [LieRing L] [LRAlgebra A L]
+variable [AddCommGroup M] [Module A M] [LieRingModule L M] [LRModule A L M] [LRModule.IsTrivial A L M]
+
+@[simp]
+theorem d_of {n : ℕ} (f : L [⋀^Fin n]→ₗ[A] M) :
+  d A L M (of _ n f) = of _ (n+1) (AlternatingMap.d A L M n f) := by simp [d]
 
 end Cochain
