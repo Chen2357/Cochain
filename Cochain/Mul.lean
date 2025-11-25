@@ -229,7 +229,9 @@ def mul_sys₁ (m : ℕ) : MulSystem₁ A L M m := match m with
 
 end Aux
 
-open AlternatingMap
+end Cochain
+
+open Cochain
 
 namespace AlternatingMap
 
@@ -513,5 +515,3 @@ theorem mul_assoc {n m l i} (f : L [⋀^Fin n]→ₗ[A] M) (g : L [⋀^Fin m]→
       rw [this]
 
 end AlternatingMap
-
-end Cochain
