@@ -4,6 +4,8 @@ open AlternatingMap
 
 namespace Cochain
 
+section
+
 variable (A L M : Type*)
 variable [CommRing A] [LieRing L] [LRAlgebra A L]
 variable [AddCommGroup M] [Module A M] [LieRingModule L M] [LRModule A L M] [LRModule.IsTrivial A L M]
@@ -95,6 +97,8 @@ def d_aux (n : ℕ) : DifferentialAuxSystem A L M n := by
   | succ n ih => exact d_aux_succ A L M n ih
 
 def d (n : ℕ) : (L [⋀^Fin n]→ₗ[A] M) →+ (L [⋀^Fin (n+1)]→ₗ[A] M) := (d_aux A L M n).d
+
+end
 
 variable {A L M : Type*}
 variable [CommRing A] [LieRing L] [LRAlgebra A L]
