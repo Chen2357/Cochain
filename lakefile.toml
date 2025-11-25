@@ -1,6 +1,6 @@
 name = "Cochain"
 version = "0.1.0"
-defaultTargets = ["cochain"]
+defaultTargets = ["Cochain"]
 
 [[lean_lib]]
 name = "Cochain"

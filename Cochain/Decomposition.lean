@@ -1,4 +1,4 @@
-import Cochain.Algebra
+import Cochain.Basic
 import Cochain.Utilities.ZMod
 import Mathlib.Algebra.DirectSum.Decomposition
 
