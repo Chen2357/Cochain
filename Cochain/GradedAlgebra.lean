@@ -63,13 +63,11 @@ instance : SuperCommAlgebra (evenOdd A L M) where
         . by_cases hm : m = j
           . simp [←hn, ←hm]
             rw [AlternatingMap.mul_graded_comm]
-            have (y : Cochain A L M) : (-1 : ℤˣ) ^ ((n : ZMod 2) * m) • y = (-1 : ℤ) ^ (n * m) • y := by
-              norm_cast
-            simp [this, zsmul_eq_mul]
+            simp
             have : n + m = m + n := add_comm n m
             rw [this]
-            have : n * m = m * n := mul_comm n m
-            rw [this]
+            congr 1
+            rw [mul_comm, pow_mul, pow_mul, ←neg_one_pow_eq_pow_mod_two, pow_right_comm, pow_right_comm _ n, ←neg_one_pow_eq_pow_mod_two]
           . simp [hm]
         . simp [hn]
       case add y1 y2 ih1 ih2 =>
