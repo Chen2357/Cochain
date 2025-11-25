@@ -25,4 +25,13 @@ theorem negOnePow_one : (-1 : ℤˣ) ^ (1 : ZMod 2) = -1 := rfl
 @[simp]
 theorem negOnePow_mul_self (n : ZMod 2) : (-1 : ℤˣ) ^ (n * n) = (-1 : ℤˣ) ^ n := cases₂ rfl rfl n
 
+@[norm_cast]
+theorem negOnePow_cast (n : ℕ) : (-1 : ℤˣ) ^ (n : ZMod 2) = (-1) ^ n := by
+  by_cases h : Even n
+  · have : (n : ZMod 2) = 0 := natCast_eq_zero_iff_even.mpr h
+    simp [this, h]
+  · simp at h
+    have : (n : ZMod 2) = 1 := natCast_eq_one_iff_odd.mpr h
+    simp [this, h]
+
 end ZMod
