@@ -8,11 +8,11 @@ namespace Cochain
 section homogeneous
 
 def homogeneous (A L M : Type*)
-  [CommRing A] [LieRing L] [LRAlgebra A L]
+  [CommRing A] [LieRing L] [LieRinehartPair A L]
   [CommRing M] [Algebra A M] (n : ℕ) : Submodule M (Cochain A L M) := LinearMap.range (lof M ℕ (fun k => L [⋀^Fin k]→ₗ[A] M) n)
 
 variable {A L M : Type*}
-  [CommRing A] [LieRing L] [LRAlgebra A L]
+  [CommRing A] [LieRing L] [LieRinehartPair A L]
   [CommRing M] [Algebra A M]
 
 theorem homogeneous_mem_iff {n : ℕ} {x : Cochain A L M} :
@@ -88,12 +88,12 @@ end homogeneous
 section evenOdd
 
 def evenOdd (A L M : Type*)
-  [CommRing A] [LieRing L] [LRAlgebra A L]
+  [CommRing A] [LieRing L] [LieRinehartPair A L]
   [CommRing M] [Algebra A M]
   (n : ZMod 2) : Submodule M (Cochain A L M) := LinearMap.range <| lmap (fun (k : ℕ) => if k = n then LinearMap.id else 0)
 
 variable {A L M : Type*}
-variable [CommRing A] [LieRing L] [LRAlgebra A L]
+variable [CommRing A] [LieRing L] [LieRinehartPair A L]
 variable [CommRing M] [Algebra A M]
 
 @[simp]

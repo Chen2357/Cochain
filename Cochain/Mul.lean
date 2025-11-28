@@ -1,4 +1,5 @@
 import Cochain.Basic
+import LieRinehart.Alternating
 
 namespace Cochain
 
@@ -7,7 +8,7 @@ namespace Aux
 open AlternatingMap
 
 variable (A L M : Type*)
-variable [CommRing A] [LieRing L] [LRAlgebra A L]
+variable [CommRing A] [LieRing L] [LieRinehartPair A L]
 variable [CommRing M] [Algebra A M]
 
 structure MulSystem₁ (m : ℕ) where
@@ -236,7 +237,7 @@ open Cochain
 namespace AlternatingMap
 
 variable {A L M : Type*}
-variable [CommRing A] [LieRing L] [LRAlgebra A L]
+variable [CommRing A] [LieRing L] [LieRinehartPair A L]
 variable [CommRing M] [Algebra A M]
 
 def mul (n m l) : (L [⋀^Fin n]→ₗ[A] M) →ₗ[M] (L [⋀^Fin m]→ₗ[A] M) →ₗ[M] (L [⋀^Fin l]→ₗ[A] M) := (Aux.mul_sys₁ A L M m).mul n l

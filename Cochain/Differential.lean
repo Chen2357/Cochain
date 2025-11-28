@@ -1,15 +1,47 @@
-import LieRinehart.Alternating
 import Cochain.Basic
+import LieRinehart.Alternating
+import LieRinehart.Basic
 
-open AlternatingMap
+open LieRinehartModule
 
 namespace AlternatingMap
 
 section
 
 variable (A L M : Type*)
-variable [CommRing A] [LieRing L] [LRAlgebra A L]
-variable [AddCommGroup M] [Module A M] [LieRingModule L M] [LRModule A L M] [LRModule.IsTrivial A L M]
+variable [CommRing A] [LieRing L] [LieRinehartPair A L]
+variable [AddCommGroup M] [Module A M] [LieRingModule L M] [LieRinehartModule A L M] [IsTrivial A L M]
+
+private theorem smul_lie_curryLeft : ∀ (a : A) (x : L) (f : L [⋀^Fin (n + 1)]→ₗ[A] M) (y : L),
+  ⁅a • x, f.curryLeft y⁆ = a • ⁅x, f.curryLeft y⁆ + a • ⁅y, f.curryLeft x⁆ - ⁅a • y, f.curryLeft x⁆ := by
+  induction n
+  case zero => intros; ext; simp
+  case succ n h =>
+    intros a x f y
+    apply eq_of_curryLeft
+    intro z
+    simp [←curryLeftLinearMap_apply]
+    simp
+    rw [curryLeft_skew f y z]
+    simp [h a x]
+    simp [curryLeft_skew f x z, curryLeft_skew f x y]
+    apply sub_eq_zero.mp
+    abel_nf
+    simp
+    abel
+
+private theorem symbol_swap (x : L) (a : A) (f : L [⋀^Fin (n + 1)]→ₗ[A] M) (y : L) :
+  symbol A L _ x a (f.curryLeft y) = -symbol A L _ y a (f.curryLeft x) := by
+  simp [symbol]
+  rw [smul_lie_curryLeft]
+  abel
+
+private lemma vecCons_tail {n L} (x : L) (v : Fin (n + 1) → L) :
+  Matrix.vecCons x (Fin.tail v) = Function.update v 0 x := by
+  ext i
+  cases i using Fin.cases
+  case zero => rfl
+  case succ i => rfl
 
 structure DifferentialAuxSystem (n : ℕ) where
   d : (L [⋀^Fin n]→ₗ[A] M) →+ (L [⋀^Fin (n+1)]→ₗ[A] M)
@@ -17,15 +49,15 @@ structure DifferentialAuxSystem (n : ℕ) where
   curryLeft_d : match n with
     | 0 => ∀ x f, (d f).curryLeft x = ⁅x, f⁆
     | _ + 1 => ∀ x f, (d f).curryLeft x = ⁅x, f⁆ - d' (f.curryLeft x)
-  contr_eq : ∀ a x f, contr A L _ (d₀ A L a) x f = d (a • f.curryLeft x) - a • d (f.curryLeft x)
+  symbol_eq : ∀ a x f, symbol A L _ x a f = d (a • f.curryLeft x) - a • d (f.curryLeft x)
 
 @[simp]
-def d_aux_zero : DifferentialAuxSystem A L M 0 := {
+def d_aux_zero : DifferentialAuxSystem A L M 0 where
   d := {
     toFun f := {
       toFun v := ⁅v 0, f ![]⁆
       map_update_add' := by simp
-      map_update_smul' := by simp [smul_lier]
+      map_update_smul' := by simp
       map_eq_zero_of_eq' := by simp
     }
     map_add' := by intros; ext; simp
@@ -33,26 +65,26 @@ def d_aux_zero : DifferentialAuxSystem A L M 0 := {
   }
   d' := 0
   curryLeft_d := by simp; intros; ext; simp
-  contr_eq := by
+  symbol_eq := by
     intros
     ext
-    simp [contr_apply, lier_smul]
+    simp [LieRinehartModule.symbol, lie_apply, smul_sub, lier_smul]
     congr
     ext i
     cases i using Fin.cases
-    case zero => simp
-    case succ i =>
-      cases i
-      contradiction
-}
+    case zero => rfl
+    case succ i => cases i; contradiction
 
 @[simp]
-def d_aux_succ (n : ℕ) (sys : DifferentialAuxSystem A L M n) : DifferentialAuxSystem A L M (n + 1) := {
+def d_aux_succ (n : ℕ) (sys : DifferentialAuxSystem A L M n) : DifferentialAuxSystem A L M (n + 1) where
   d := {
     toFun f := uncurryLeft {
       toFun x := ⁅x, f⁆ - sys.d (f.curryLeft x)
       map_add' := by intros; ext; simp; abel
-      map_smul' := by intros; ext; simp [smul_sub, smul_lier, sys.contr_eq]; abel
+      map_smul' := by
+        intros a x
+        simp [smul_lier, sys.symbol_eq, smul_sub]
+        abel
     } <| by
       simp
       intro
@@ -74,22 +106,24 @@ def d_aux_succ (n : ℕ) (sys : DifferentialAuxSystem A L M n) : DifferentialAux
     intros
     ext
     simp [Matrix.vecCons]
-  contr_eq := by
+  symbol_eq := by
     intros a x f
     ext v
-    simp [contr_apply_succ, Matrix.vecCons, smul_sub, sys.contr_eq, lier_smul]
-    conv_lhs =>
-        arg 1
-        rw [curryLeft_skew]
-    have : Fin.cons x (Fin.tail v) = Function.update v 0 x := by
+    have tail_zero : Fin.tail v 0 = v 1 := rfl
+    simp [symbol, lier_smul, lie_apply_succ, smul_sub, vecCons_tail, tail_zero]
+    have := sub_eq_iff_eq_add.mp <| Eq.symm <| sys.symbol_eq a (v 0) (f.curryLeft x)
+    rw [this, curryLeft_skew f (v 0) (v 1), symbol_swap]
+    simp [symbol]
+    have (f : L [⋀^Fin (n + 1)]→ₗ[A] M) : f (Fin.tail v) = (f.curryLeft (v 1)) (Fin.tail (Fin.tail v)) := by
+      simp
+      congr
       ext i
       cases i using Fin.cases
-      case zero => simp
-      case succ i => simp; rfl
+      case zero => rfl
+      case succ i => rfl
     rw [this]
-    simp
+    simp [curryLeft_skew f (v 0) (v 1), smul_sub, lie_apply_succ, tail_zero, vecCons_tail]
     abel
-}
 
 @[simp]
 def d_aux (n : ℕ) : DifferentialAuxSystem A L M n := by
@@ -100,8 +134,8 @@ def d_aux (n : ℕ) : DifferentialAuxSystem A L M n := by
 end
 
 variable {A L M : Type*}
-variable [CommRing A] [LieRing L] [LRAlgebra A L]
-variable [AddCommGroup M] [Module A M] [LieRingModule L M] [LRModule A L M] [LRModule.IsTrivial A L M]
+variable [CommRing A] [LieRing L] [LieRinehartPair A L]
+variable [AddCommGroup M] [Module A M] [LieRingModule L M] [LieRinehartModule A L M] [IsTrivial A L M]
 
 def d (n : ℕ) : (L [⋀^Fin n]→ₗ[A] M) →+ (L [⋀^Fin (n+1)]→ₗ[A] M) := (d_aux A L M n).d
 
@@ -157,14 +191,11 @@ open DirectSum
 
 namespace Cochain
 
-def d {A L M : Type*}
-  [CommRing A] [LieRing L] [LRAlgebra A L]
-  [AddCommGroup M] [Module A M] [LieRingModule L M] [LRModule A L M] [LRModule.IsTrivial A L M] :
-  Cochain A L M →+ Cochain A L M := toAddMonoid fun n => AddMonoidHom.comp (of (fun k => L [⋀^Fin k]→ₗ[A] M) (n+1)) (AlternatingMap.d n)
-
 variable {A L M : Type*}
-variable [CommRing A] [LieRing L] [LRAlgebra A L]
-variable [AddCommGroup M] [Module A M] [LieRingModule L M] [LRModule A L M] [LRModule.IsTrivial A L M]
+variable [CommRing A] [LieRing L] [LieRinehartPair A L]
+variable [AddCommGroup M] [Module A M] [LieRingModule L M] [LieRinehartModule A L M] [IsTrivial A L M]
+
+def d : Cochain A L M →+ Cochain A L M := toAddMonoid fun n => AddMonoidHom.comp (of (fun k => L [⋀^Fin k]→ₗ[A] M) (n+1)) (AlternatingMap.d n)
 
 @[simp]
 theorem d_of {n : ℕ} (f : L [⋀^Fin n]→ₗ[A] M) :

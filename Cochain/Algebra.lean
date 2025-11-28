@@ -10,7 +10,7 @@ open Function
 open Cochain
 
 variable {A L M : Type*}
-variable [CommRing A] [LieRing L] [LRAlgebra A L]
+variable [CommRing A] [LieRing L] [LieRinehartPair A L]
 variable [CommRing M] [Algebra A M]
 
 instance : GNonUnitalNonAssocSemiring (fun n => L [⋀^Fin n]→ₗ[A] M) where

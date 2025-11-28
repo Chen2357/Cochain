@@ -7,7 +7,7 @@ namespace Cochain
 section AddMonoidHom
 
 def ι {A L M : Type*}
-  [CommRing A] [LieRing L] [LRAlgebra A L]
+  [CommRing A] [LieRing L] [LieRinehartPair A L]
   [AddCommGroup M] [Module A M] (x : L) :
   Cochain A L M →+ Cochain A L M := toAddMonoid fun
   | 0 => 0
@@ -18,7 +18,7 @@ def ι {A L M : Type*}
   }
 
 variable {A L M : Type*}
-variable [CommRing A] [LieRing L] [LRAlgebra A L]
+variable [CommRing A] [LieRing L] [LieRinehartPair A L]
 variable [AddCommGroup M] [Module A M]
 
 @[simp]
@@ -34,7 +34,7 @@ end AddMonoidHom
 section LinearMap
 
 def ιLinear {A L M : Type*}
-  [CommRing A] [LieRing L] [LRAlgebra A L]
+  [CommRing A] [LieRing L] [LieRinehartPair A L]
   [CommRing M] [Algebra A M] (x : L) :
   Cochain A L M →ₗ[M] Cochain A L M := {
     toFun := ι x
@@ -55,7 +55,7 @@ def ιLinear {A L M : Type*}
   }
 
 variable {A L M : Type*}
-variable [CommRing A] [LieRing L] [LRAlgebra A L]
+variable [CommRing A] [LieRing L] [LieRinehartPair A L]
 variable [CommRing M] [Algebra A M]
 
 theorem ιLinear_eq_ι (x : L) (f : Cochain A L M) : ιLinear x f = ι x f := rfl

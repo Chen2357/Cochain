@@ -8,7 +8,7 @@ open DirectSum
 namespace Cochain
 
 variable {A L M : Type*}
-  [CommRing A] [LieRing L] [LRAlgebra A L]
+  [CommRing A] [LieRing L] [LieRinehartPair A L]
   [CommRing M] [Algebra A M]
 
 instance : GradedAlgebra (homogeneous A L M) where

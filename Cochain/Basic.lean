@@ -1,17 +1,17 @@
-import LieRinehart.Alternating
-import Mathlib.Algebra.Lie.DirectSum
+import LieRinehart.Basic
+import Mathlib.LinearAlgebra.Alternating.Curry
 import Mathlib.Algebra.Group.TransferInstance
 
 open DirectSum
 open AlternatingMap
 open Function
 
-abbrev Cochain (A L M : Type*) [CommRing A] [LieRing L] [LRAlgebra A L] [AddCommGroup M] [Module A M] := DirectSum ℕ (fun n => L [⋀^Fin n]→ₗ[A] M)
+abbrev Cochain (A L M : Type*) [CommRing A] [LieRing L] [LieRinehartPair A L] [AddCommGroup M] [Module A M]  := DirectSum ℕ (fun n => L [⋀^Fin n]→ₗ[A] M)
 
 namespace Cochain
 
 variable {A L M : Type*}
-variable [CommRing A] [LieRing L] [LRAlgebra A L]
+variable [CommRing A] [LieRing L] [LieRinehartPair A L]
 variable [CommRing M] [Algebra A M]
 
 def ofIsEmptyLinear : M ≃ₗ[M] L [⋀^Fin 0]→ₗ[A] M := {
