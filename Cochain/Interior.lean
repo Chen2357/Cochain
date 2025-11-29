@@ -1,4 +1,6 @@
-import Cochain.Algebra
+import Cochain.Basic
+import LieRinehart.Alternating
+import LieRinehart.Utilities.DirectSum
 
 open DirectSum
 
@@ -6,9 +8,11 @@ namespace Cochain
 
 section AddMonoidHom
 
-def ι {A L M : Type*}
-  [CommRing A] [LieRing L] [LieRinehartPair A L]
-  [AddCommGroup M] [Module A M] (x : L) :
+variable {A L M : Type*}
+variable [CommRing A] [LieRing L] [LieRinehartPair A L]
+variable [AddCommGroup M] [Module A M]
+
+def ι (x : L) :
   Cochain A L M →+ Cochain A L M := toAddMonoid fun
   | 0 => 0
   | i + 1 => AddMonoidHom.comp (of (fun k => L [⋀^Fin k]→ₗ[A] M) i) <| {
@@ -17,10 +21,6 @@ def ι {A L M : Type*}
     map_add' := by simp
   }
 
-variable {A L M : Type*}
-variable [CommRing A] [LieRing L] [LieRinehartPair A L]
-variable [AddCommGroup M] [Module A M]
-
 @[simp]
 theorem ι_of_zero (x : L) (f : L [⋀^Fin 0]→ₗ[A] M) :
   ι x (of _ 0 f) = 0 := by simp [ι]
@@ -28,6 +28,81 @@ theorem ι_of_zero (x : L) (f : L [⋀^Fin 0]→ₗ[A] M) :
 @[simp]
 theorem ι_of_succ (x : L) {n : ℕ} (f : L [⋀^Fin (n + 1)]→ₗ[A] M) :
   ι x (of _ (n + 1) f) = of _ n (f.curryLeft x) := by simp [ι]
+
+theorem ι_apply (x : L) (f : Cochain A L M) (n : ℕ) :
+  ι x f n = (f (n + 1)).curryLeft x := by
+  induction f using DirectSum.induction_on
+  case zero => simp
+  case of m f =>
+    by_cases h : m = n + 1
+    . cases h
+      simp
+    . simp [of_eq_of_ne _ _ _ (Ne.symm h)]
+      cases m
+      . simp
+      . simp
+        simp at h
+        rw [of_eq_of_ne _ _ _ (Ne.symm h)]
+  case add =>
+    simp [*]
+
+theorem eq_of_ι (f g : Cochain A L M)
+  (zero : f 0 = g 0)
+  (succ : ∀ x : L, ι x f = ι x g) : f = g := by
+  induction g using DirectSum.induction_on
+  case zero =>
+    ext1 i
+    cases i
+    case zero => exact zero
+    case succ i =>
+      apply AlternatingMap.eq_of_curryLeft
+      intro y
+      have : ι y f i = 0 := by
+        simp [succ y]
+      simp [ι_apply] at this
+      simp [this]
+  case of n g =>
+    ext1 i
+    cases i
+    case zero => exact zero
+    case succ i =>
+      apply AlternatingMap.eq_of_curryLeft
+      intro y
+      have : ι y f i = ι y (of _ _ g) i := by
+        rw [succ y]
+      simp [ι_apply] at this
+      rw [this]
+  case add g₁ g₂ _ _ =>
+    ext1 i
+    cases i
+    case zero => exact zero
+    case succ i =>
+      apply AlternatingMap.eq_of_curryLeft
+      intro y
+      have : ι y f i = ι y (g₁ + g₂) i := by
+        rw [succ y]
+      simp [ι_apply] at *
+      rw [this]
+
+variable [LieRingModule L M] [LieRinehartModule A L M]
+
+theorem lie_ι (x : L) (y : L) (f : Cochain A L M) :
+  ⁅x, ι y f⁆ = ι y (⁅x, f⁆) + ι ⁅x, y⁆ f := by
+  induction f using DirectSum.induction_on
+  case zero => simp
+  case of n f =>
+    cases n
+    simp
+    simp
+  case add =>
+    simp at *
+    simp [*]
+    abel
+
+theorem ι_lie (x : L) (y : L) (f : Cochain A L M) :
+  ι x (⁅y, f⁆) = ⁅y, ι x f⁆ - ι ⁅y, x⁆ f := by
+  rw [lie_ι]
+  abel
 
 end AddMonoidHom
 
@@ -67,38 +142,6 @@ theorem ιLinear_of_zero (x : L) (f : L [⋀^Fin 0]→ₗ[A] M) :
 @[simp]
 theorem ιLinear_of_succ (x : L) {n : ℕ} (f : L [⋀^Fin (n + 1)]→ₗ[A] M) :
   ιLinear x (of _ (n + 1) f) = of _ n (f.curryLeft x) := by simp [ιLinear_eq_ι]
-
-
-@[simp]
-theorem ι_mul_of (x : L) {n m : ℕ} (f : L [⋀^Fin n]→ₗ[A] M) (g : L [⋀^Fin m]→ₗ[A] M) :
-  ι x (of _ n f * of _ m g) = ι x (of _ n f) * of _ m g + (-1) ^ n * of _ n f * ι x (of _ m g) := by
-  cases n
-  case zero =>
-    simp
-    cases m
-    case zero =>
-      simp
-    case succ m =>
-      simp
-      rw [(by rfl : 0 + (m + 1) = 0 + m + 1)]
-      simp
-  case succ n =>
-    cases m
-    case zero =>
-      simp
-    case succ m =>
-      simp
-      rw [(by rfl : n + 1 + (m + 1) = n + 1 + m + 1)]
-      simp
-      congr 1
-      have : n + 1 + m = n + (m + 1) := by linarith
-      rw [this]
-      rw [mul_assoc]
-      simp
-
-@[simp]
-theorem ιLinear_mul_of (x : L) {n m : ℕ} (f : L [⋀^Fin n]→ₗ[A] M) (g : L [⋀^Fin m]→ₗ[A] M) :
-  ιLinear x (lof M ℕ _ n f * lof M ℕ _ m g) = ιLinear x (lof M ℕ _ n f) * lof M ℕ _ m g + (-1) ^ n * lof M ℕ _ n f * ιLinear x (lof M ℕ _ m g) := ι_mul_of x f g
 
 end LinearMap
 
