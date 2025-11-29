@@ -53,13 +53,13 @@ instance : GSemiring (fun n => L [⋀^Fin n]→ₗ[A] M) where
 instance : Ring (Cochain A L M) where
 
 @[simp]
-def mul_lof {n m} (f : L [⋀^Fin n]→ₗ[A] M) (g : L [⋀^Fin m]→ₗ[A] M) :
+theorem mul_lof {n m} (f : L [⋀^Fin n]→ₗ[A] M) (g : L [⋀^Fin m]→ₗ[A] M) :
   (lof M _ _ _ f: Cochain A L M) * (lof M _ _ _ g : Cochain A L M) = lof M _ _ (n + m) (AlternatingMap.mul _ _ _ f g) := by
     ext1 i
     simp [lof_eq_of, HMul.hMul, Mul.mul, GradedMonoid.GMul.mul]
 
 @[simp]
-def mul_of {n m} (f : L [⋀^Fin n]→ₗ[A] M) (g : L [⋀^Fin m]→ₗ[A] M) :
+theorem mul_of {n m} (f : L [⋀^Fin n]→ₗ[A] M) (g : L [⋀^Fin m]→ₗ[A] M) :
   (of _ _ f : Cochain A L M) * (of _ _ g : Cochain A L M) = of _ (n + m) (AlternatingMap.mul _ _ _ f g) :=
   mul_lof f g
 
