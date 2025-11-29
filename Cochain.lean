@@ -4,3 +4,4 @@ import Cochain.Mul
 import Cochain.Algebra
 import Cochain.Decomposition
 import Cochain.GradedAlgebra
+import Cochain.Cartan
