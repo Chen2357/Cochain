@@ -1,6 +1,5 @@
 import Cochain.Basic
 import LieRinehart.Alternating
-import LieRinehart.Basic
 
 open LieRinehartModule
 
@@ -137,23 +136,24 @@ variable {A L M : Type*}
 variable [CommRing A] [LieRing L] [LieRinehartPair A L]
 variable [AddCommGroup M] [Module A M] [LieRingModule L M] [LieRinehartModule A L M] [IsTrivial A L M]
 
-def d (n : ℕ) : (L [⋀^Fin n]→ₗ[A] M) →+ (L [⋀^Fin (n+1)]→ₗ[A] M) := (d_aux A L M n).d
+def d {n : ℕ} : (L [⋀^Fin n]→ₗ[A] M) →+ (L [⋀^Fin (n+1)]→ₗ[A] M) := (d_aux A L M n).d
 
 @[simp]
-theorem curryLeft_d_of_zero (f : L [⋀^Fin 0]→ₗ[A] M) (x : L) : (d 0 f).curryLeft x = ⁅x, f⁆ := (d_aux A L M 0).curryLeft_d x f
+theorem curryLeft_d_of_zero (f : L [⋀^Fin 0]→ₗ[A] M) (x : L) : (d f).curryLeft x = ⁅x, f⁆ := (d_aux A L M 0).curryLeft_d x f
 
 @[simp]
-theorem d_apply_zero (f : L [⋀^Fin 0]→ₗ[A] M) (v : Fin 1 → L) : d 0 f v = ⁅v 0, f ![]⁆ := by
+theorem d_apply_zero (f : L [⋀^Fin 0]→ₗ[A] M) (v : Fin 1 → L) : d f v = ⁅v 0, f ![]⁆ := by
   simp [d]
 
 @[simp]
-theorem curryLeft_d_of_succ (n : ℕ) (f : L [⋀^Fin (n+1)]→ₗ[A] M) (x : L) : (d (n+1) f).curryLeft x = ⁅x, f⁆ - d (n) (f.curryLeft x) := (d_aux A L M (n+1)).curryLeft_d x f
+theorem curryLeft_d_of_succ (n : ℕ) (f : L [⋀^Fin (n+1)]→ₗ[A] M) (x : L) : (d f).curryLeft x = ⁅x, f⁆ - d (f.curryLeft x) := (d_aux A L M (n+1)).curryLeft_d x f
+
 @[simp]
-theorem d_apply_succ (f : L [⋀^Fin (n+1)]→ₗ[A] M) (v : Fin (n + 2) → L) : d (n+1) f v = ⁅v 0, f⁆ (Fin.tail v) - d (n) (f.curryLeft (v 0)) (Fin.tail v) := by
+theorem d_apply_succ (f : L [⋀^Fin (n+1)]→ₗ[A] M) (v : Fin (n+2) → L) : d f v = ⁅v 0, f⁆ (Fin.tail v) - d (f.curryLeft (v 0)) (Fin.tail v) := by
   simp [d]
 
 theorem d_lie (n : ℕ) (x : L) (f : L [⋀^Fin n]→ₗ[A] M) :
-  d n (⁅x, f⁆) = ⁅x, d n f⁆ := by
+  d (⁅x, f⁆) = ⁅x, d f⁆ := by
   induction n
   case zero =>
     apply eq_of_curryLeft
@@ -166,7 +166,7 @@ theorem d_lie (n : ℕ) (x : L) (f : L [⋀^Fin n]→ₗ[A] M) :
     abel
 
 @[simp]
-theorem d_d_apply (n : ℕ) (f : L [⋀^Fin n]→ₗ[A] M) : d _ (d _ f) = 0 := by
+theorem d_d_apply (n : ℕ) (f : L [⋀^Fin n]→ₗ[A] M) : d (d f) = 0 := by
   induction n with
   | zero =>
     apply eq_of_curryLeft
@@ -195,10 +195,10 @@ variable {A L M : Type*}
 variable [CommRing A] [LieRing L] [LieRinehartPair A L]
 variable [AddCommGroup M] [Module A M] [LieRingModule L M] [LieRinehartModule A L M] [IsTrivial A L M]
 
-def d : Cochain A L M →+ Cochain A L M := toAddMonoid fun n => AddMonoidHom.comp (of (fun k => L [⋀^Fin k]→ₗ[A] M) (n+1)) (AlternatingMap.d n)
+def d : Cochain A L M →+ Cochain A L M := toAddMonoid fun n => AddMonoidHom.comp (of (fun k => L [⋀^Fin k]→ₗ[A] M) (n+1)) AlternatingMap.d
 
 @[simp]
 theorem d_of {n : ℕ} (f : L [⋀^Fin n]→ₗ[A] M) :
-  d (of _ n f) = of _ (n+1) (AlternatingMap.d n f) := by simp [d]
+  d (of _ n f) = of _ (n+1) (AlternatingMap.d f) := by simp [d]
 
 end Cochain
