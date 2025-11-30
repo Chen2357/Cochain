@@ -12,22 +12,41 @@ variable {A L M : Type*}
 variable [CommRing A] [LieRing L] [LieRinehartPair A L]
 variable [AddCommGroup M] [Module A M]
 
-def ι (x : L) :
-  Cochain A L M →+ Cochain A L M := toAddMonoid fun
-  | 0 => 0
-  | i + 1 => AddMonoidHom.comp (of (fun k => L [⋀^Fin k]→ₗ[A] M) i) <| {
-    toFun f := f.curryLeft x
-    map_zero' := rfl
+def ι : L →ₗ[A] Cochain A L M →ₗ[A] Cochain A L M := {
+  toFun x := {
+    toFun := toModule A ℕ (Cochain A L M) fun
+      | 0 => 0
+      | i + 1 => (lof A _ (fun k => L [⋀^Fin k]→ₗ[A] M) i) ∘ₗ {
+        toFun f := f.curryLeft x
+        map_add' := by simp
+        map_smul' := by simp
+      }
     map_add' := by simp
+    map_smul' m x := by
+      induction x using DirectSum.induction_on
+      case zero => simp
+      case add => simp [*]
+      case of n f => simp [←lof_eq_of A]
   }
+  map_add' x y := by
+    ext n f m v
+    simp
+    cases n
+    all_goals simp [lof_eq_of]
+  map_smul' a x := by
+    ext n f m v
+    simp
+    cases n
+    all_goals simp [lof_eq_of]
+}
 
 @[simp]
 theorem ι_of_zero (x : L) (f : L [⋀^Fin 0]→ₗ[A] M) :
-  ι x (of _ 0 f) = 0 := by simp [ι]
+  ι x (of _ 0 f) = 0 := by simp [ι, ←lof_eq_of A]
 
 @[simp]
 theorem ι_of_succ (x : L) {n : ℕ} (f : L [⋀^Fin (n + 1)]→ₗ[A] M) :
-  ι x (of _ (n + 1) f) = of _ n (f.curryLeft x) := by simp [ι]
+  ι x (of _ (n + 1) f) = of _ n (f.curryLeft x) := by simp [ι, ←lof_eq_of A]
 
 theorem ι_apply (x : L) (f : Cochain A L M) (n : ℕ) :
   ι x f n = (f (n + 1)).curryLeft x := by
