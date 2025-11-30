@@ -5,7 +5,7 @@
    "type": "git",
    "subDir": null,
    "scope": "",
-   "rev": "60e994f046f2814a290c2ff4617260b21bdd24d5",
+   "rev": "c89b176e2cac54ac85118a176aa3b39be4de9821",
    "name": "LieRinehart",
    "manifestFile": "lake-manifest.json",
    "inputRev": "main",
