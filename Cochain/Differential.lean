@@ -1,5 +1,6 @@
 import Cochain.Basic
 import LieRinehart.Alternating
+import Cochain.Utilities.Alternating
 
 open LieRinehartModule
 
@@ -132,6 +133,8 @@ def d_aux (n : ℕ) : DifferentialAuxSystem A L M n := by
 
 end
 
+section
+
 variable {A L M : Type*}
 variable [CommRing A] [LieRing L] [LieRinehartPair A L]
 variable [AddCommGroup M] [Module A M] [LieRingModule L M] [LieRinehartModule A L M] [IsTrivial A L M]
@@ -146,13 +149,13 @@ theorem d_apply_zero (f : L [⋀^Fin 0]→ₗ[A] M) (v : Fin 1 → L) : d f v = 
   simp [d]
 
 @[simp]
-theorem curryLeft_d_of_succ (n : ℕ) (f : L [⋀^Fin (n+1)]→ₗ[A] M) (x : L) : (d f).curryLeft x = ⁅x, f⁆ - d (f.curryLeft x) := (d_aux A L M (n+1)).curryLeft_d x f
+theorem curryLeft_d_of_succ {n : ℕ} (f : L [⋀^Fin (n+1)]→ₗ[A] M) (x : L) : (d f).curryLeft x = ⁅x, f⁆ - d (f.curryLeft x) := (d_aux A L M (n+1)).curryLeft_d x f
 
 @[simp]
 theorem d_apply_succ (f : L [⋀^Fin (n+1)]→ₗ[A] M) (v : Fin (n+2) → L) : d f v = ⁅v 0, f⁆ (Fin.tail v) - d (f.curryLeft (v 0)) (Fin.tail v) := by
   simp [d]
 
-theorem d_lie (n : ℕ) (x : L) (f : L [⋀^Fin n]→ₗ[A] M) :
+theorem d_lie {n : ℕ} (x : L) (f : L [⋀^Fin n]→ₗ[A] M) :
   d (⁅x, f⁆) = ⁅x, d f⁆ := by
   induction n
   case zero =>
@@ -166,7 +169,7 @@ theorem d_lie (n : ℕ) (x : L) (f : L [⋀^Fin n]→ₗ[A] M) :
     abel
 
 @[simp]
-theorem d_d_apply (n : ℕ) (f : L [⋀^Fin n]→ₗ[A] M) : d (d f) = 0 := by
+theorem d_d_apply {n : ℕ} (f : L [⋀^Fin n]→ₗ[A] M) : d (d f) = 0 := by
   induction n with
   | zero =>
     apply eq_of_curryLeft
@@ -185,11 +188,47 @@ theorem d_d_apply (n : ℕ) (f : L [⋀^Fin n]→ₗ[A] M) : d (d f) = 0 := by
     simp [←curryLeftLinearMap_apply]
     simp [d_lie]
 
+end
+
+section
+
+variable (R : Type*) {A L M : Type*}
+variable [CommRing R]
+
+variable [CommRing A] [LieRing L] [LieRinehartPair A L]
+variable [Algebra R A] [LieAlgebra R L] [LieRinehartAlgebra R A L]
+
+variable [AddCommGroup M] [Module A M] [LieRingModule L M]
+variable [Module R M] [IsScalarTower R A M] [LieModule R L M]
+
+variable [LieRinehartModule A L M] [IsTrivial A L M]
+
+@[simp]
+theorem d_smul_eq_smul_d {n : ℕ} (r : R) (f : L [⋀^Fin n]→ₗ[A] M) : d (r • f) = r • d f := by
+  ext v
+  induction n with
+  | zero => simp
+  | succ n h =>
+    simp [←curryLeftLinearMap_apply, smul_sub]
+    rw [h]
+    simp
+
+def dLinear {n : ℕ} : (L [⋀^Fin n]→ₗ[A] M) →ₗ[R] (L [⋀^Fin (n+1)]→ₗ[A] M) where
+  toFun := d
+  map_add' := by simp
+  map_smul' := by simp
+
+theorem dLinear_apply {n : ℕ} (f : L [⋀^Fin n]→ₗ[A] M) : dLinear R f = d f := rfl
+
+end
+
 end AlternatingMap
 
 open DirectSum
 
 namespace Cochain
+
+section
 
 variable {A L M : Type*}
 variable [CommRing A] [LieRing L] [LieRinehartPair A L]
@@ -200,5 +239,45 @@ def d : Cochain A L M →+ Cochain A L M := toAddMonoid fun n => AddMonoidHom.co
 @[simp]
 theorem d_of {n : ℕ} (f : L [⋀^Fin n]→ₗ[A] M) :
   d (of _ n f) = of _ (n+1) (AlternatingMap.d f) := by simp [d]
+
+@[simp]
+theorem d_lof {n : ℕ} (f : L [⋀^Fin n]→ₗ[A] M) :
+  d (lof A _ _ n f) = lof A _ _ (n+1) (AlternatingMap.d f) := d_of f
+
+end
+
+section
+
+variable (R : Type*) {A L M : Type*}
+variable [CommRing R]
+
+variable [CommRing A] [LieRing L] [LieRinehartPair A L]
+variable [Algebra R A] [LieAlgebra R L] [LieRinehartAlgebra R A L]
+
+variable [AddCommGroup M] [Module A M] [LieRingModule L M]
+variable [Module R M] [IsScalarTower R A M] [LieModule R L M]
+
+variable [LieRinehartModule A L M] [IsTrivial A L M]
+
+@[simp]
+theorem d_smul_eq_smul_d (r : R) (x : Cochain A L M) : d (r • x) = r • d x := by
+  induction x using DirectSum.induction_on
+  case zero => simp
+  case add => simp [*]
+  case of n f =>
+    simp [←lof_eq_of R]
+    rw [←LinearMap.map_smul]
+    rw [lof_eq_of, lof_eq_of]
+    simp
+    simp [←lof_eq_of R]
+
+def dLinear : Cochain A L M →ₗ[R] Cochain A L M where
+  toFun := d
+  map_add' := by simp
+  map_smul' := by simp
+
+theorem dLinear_apply (x : Cochain A L M) : dLinear R x = d x := rfl
+
+end
 
 end Cochain
