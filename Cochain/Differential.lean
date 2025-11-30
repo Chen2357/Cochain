@@ -1,6 +1,5 @@
 import Cochain.Basic
 import LieRinehart.Alternating
-import Cochain.Utilities.Alternating
 
 open LieRinehartModule
 
