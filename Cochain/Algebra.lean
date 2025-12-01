@@ -1,13 +1,13 @@
 import Cochain.Mul
 import Mathlib.Algebra.GradedMonoid
 import Mathlib.Algebra.DirectSum.Algebra
+import LieRinehart.Utilities.DirectSum
 
-section Cochain
+namespace Cochain
 
 open DirectSum
 open AlternatingMap
 open Function
-open Cochain
 
 variable {A L M : Type*}
 variable [CommRing A] [LieRing L] [LieRinehartPair A L]
@@ -95,13 +95,14 @@ theorem mul_apply_zero (f g : Cochain A L M) :
 instance : One (Cochain A L M) where
   one := of _ 0 (constOfIsEmpty A L (Fin 0) 1)
 
-theorem Cochain.one_def : (1 : Cochain A L M) = of _ 0 (constOfIsEmpty A L (Fin 0) 1) := rfl
+theorem one_def : (1 : Cochain A L M) = of _ 0 (constOfIsEmpty A L (Fin 0) 1) := rfl
 
 @[simp]
 theorem one_apply_zero : (1 : Cochain A L M) 0 = constOfIsEmpty A L (Fin 0) 1 := rfl
 
+@[simp]
 theorem one_apply_ne_zero (n : ℕ) (hn : n ≠ 0) : (1 : Cochain A L M) n = 0 := by
-  rw [Cochain.one_def]
+  rw [one_def]
   rw [of_eq_of_ne]
   exact hn
 
@@ -131,5 +132,20 @@ instance : GAlgebra M (fun n => L [⋀^Fin n]→ₗ[A] M) where
       revert f
       apply Eq.ndrec (motive := fun t => ∀ f, r • f ≍ (AlternatingMap.mul 0 n t) (constOfIsEmpty A L (Fin 0) r) f) ?_ this
       simp
+
+@[simp]
+theorem algebraMap_apply_zero (r : M) : algebraMap M (Cochain A L M) r 0 = constOfIsEmpty A L (Fin 0) r := rfl
+
+@[simp]
+theorem algebraMap_apply_succ (r : M) (n : ℕ) : algebraMap M (Cochain A L M) r (n + 1) = 0 := rfl
+
+variable [LieRingModule L M] [LieRinehartModule A L M]
+
+@[simp]
+theorem lie_algebraMap (x : L) (f : M) : ⁅x, algebraMap M (Cochain A L M) f⁆ = algebraMap M (Cochain A L M) ⁅x, f⁆ := by
+  ext i v
+  cases i
+  case zero => simp
+  case succ i => simp
 
 end Cochain

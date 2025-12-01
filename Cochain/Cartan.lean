@@ -71,6 +71,11 @@ theorem ι_of_mul (x : L) {n m : ℕ} (f : L [⋀^Fin n]→ₗ[A] M) (g : L [⋀
     ι x (of _ n f) * of _ m g + (-1) ^ n * of _ n f * ι x (of _ m g) := by
   simp [←ι_mul_of]
 
+@[simp]
+theorem ι_algebraMap (x : L) (f : M) :
+  ι x (algebraMap M (Cochain A L M) f) = 0 := by
+  simp [algebraMap_apply]
+
 end
 
 end Cochain
