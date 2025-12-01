@@ -76,6 +76,13 @@ theorem ι_algebraMap (x : L) (f : M) :
   ι x (algebraMap M (Cochain A L M) f) = 0 := by
   simp [algebraMap_apply]
 
+variable [LieRingModule L M] [LieRinehartModule A L M] [LieRinehartModule.IsTrivial A L M]
+
+@[simp]
+theorem d_algebraMap_apply_one_apply (f : M) (v : Fin 1 → L) :
+  d (algebraMap M (Cochain A L M) f) 1 v = ⁅v 0, f⁆ := by
+  simp [algebraMap_apply]
+
 end
 
 end Cochain

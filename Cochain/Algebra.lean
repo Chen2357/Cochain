@@ -21,7 +21,7 @@ instance : GNonUnitalNonAssocSemiring (fun n => L [⋀^Fin n]→ₗ[A] M) where
   add_mul := by simp
 
 instance : GradedMonoid.GOne (fun n => L [⋀^Fin n]→ₗ[A] M) where
-  one := 1
+  one := constOfIsEmpty A L (Fin 0) 1
 
 instance : GSemiring (fun n => L [⋀^Fin n]→ₗ[A] M) where
   mul_one a := by apply Sigma.ext; simp; simp [GradedMonoid.GOne.one, GradedMonoid.GMul.mul]
@@ -33,7 +33,7 @@ instance : GSemiring (fun n => L [⋀^Fin n]→ₗ[A] M) where
     simp
     have : n = 0 + n := by linarith
     revert f
-    apply Eq.ndrec (motive := fun t => ∀ f, ((AlternatingMap.mul 0 n t) 1) f ≍ f) ?_ this
+    apply Eq.ndrec (motive := fun t => ∀ f, ((AlternatingMap.mul 0 n t) (constOfIsEmpty A L (Fin 0) 1)) f ≍ f) ?_ this
     simp
   mul_assoc a b c := by
     rcases a with ⟨n, f⟩
@@ -46,9 +46,9 @@ instance : GSemiring (fun n => L [⋀^Fin n]→ₗ[A] M) where
     rw [AlternatingMap.mul_assoc f g h]
     have : (n + m) + l = n + (m + l) := by linarith
     rw [this]
-  natCast n := n
-  natCast_zero := by simp
-  natCast_succ n := by simp [GradedMonoid.GOne.one]
+  natCast n := constOfIsEmpty A L (Fin 0) n
+  natCast_zero := by ext; simp
+  natCast_succ n := by ext; simp [GradedMonoid.GOne.one]
 
 instance : Ring (Cochain A L M) where
 
@@ -92,9 +92,6 @@ theorem mul_apply_zero (f g : Cochain A L M) :
     case add => rw [mul_add]; simp [*]
   case add => rw [add_mul]; simp [*]
 
-instance : One (Cochain A L M) where
-  one := of _ 0 (constOfIsEmpty A L (Fin 0) 1)
-
 theorem one_def : (1 : Cochain A L M) = of _ 0 (constOfIsEmpty A L (Fin 0) 1) := rfl
 
 @[simp]
@@ -110,7 +107,11 @@ theorem one_apply_ne_zero (n : ℕ) (hn : n ≠ 0) : (1 : Cochain A L M) n = 0 :
 theorem one_apply_succ (n : ℕ) : (1 : Cochain A L M) (n + 1) = 0 := rfl
 
 instance : GAlgebra M (fun n => L [⋀^Fin n]→ₗ[A] M) where
-  toFun := ofIsEmpty.toAddMonoidHom
+  toFun := {
+    toFun x := constOfIsEmpty A L (Fin 0) x
+    map_zero' := by ext; simp
+    map_add' := by intros; ext; simp
+  }
   map_one := rfl
   map_mul := by intros; rfl
   commutes r x := by
@@ -133,8 +134,10 @@ instance : GAlgebra M (fun n => L [⋀^Fin n]→ₗ[A] M) where
       apply Eq.ndrec (motive := fun t => ∀ f, r • f ≍ (AlternatingMap.mul 0 n t) (constOfIsEmpty A L (Fin 0) r) f) ?_ this
       simp
 
+theorem algebraMap_apply (r : M) : algebraMap M (Cochain A L M) r = of _ 0 (constOfIsEmpty A L (Fin 0) r) := rfl
+
 @[simp]
-theorem algebraMap_apply_zero (r : M) : algebraMap M (Cochain A L M) r 0 = constOfIsEmpty A L (Fin 0) r := rfl
+theorem algebraMap_apply_zero_apply (r : M) (v : Fin 0 → L) : algebraMap M (Cochain A L M) r 0 v = r := rfl
 
 @[simp]
 theorem algebraMap_apply_succ (r : M) (n : ℕ) : algebraMap M (Cochain A L M) r (n + 1) = 0 := rfl
