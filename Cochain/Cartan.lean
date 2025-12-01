@@ -1,6 +1,7 @@
 import Cochain.Interior
 import Cochain.Differential
 import Cochain.Algebra
+import LieRinehart.Utilities.DirectSum
 
 open DirectSum
 
@@ -102,11 +103,13 @@ namespace AlternatingMap
 
 variable {A L M : Type*}
 variable [CommRing A] [LieRing L] [LieRinehartPair A L]
--- There is an opportunity for generalization, but we need a class about compatibility of LieRinehartPairs
--- variable [CommRing M] [Algebra A M]
--- variable [LieRinehartPair M L] [LieRinehartModule A L M]
 
-theorem lie_mul {n m l : ℕ} (x : L) : ∀ (f : L [⋀^Fin n]→ₗ[A] A) (g : L [⋀^Fin m]→ₗ[A] A), ⁅x, mul n m l f g⁆ = mul _ _ _ (⁅x, f⁆) g + mul _ _ _ f (⁅x, g⁆) := by
+section
+
+variable [CommRing M] [Algebra A M]
+variable [LieRinehartRing L M] [LieRinehartModule A L M]
+
+theorem lie_mul {n m l : ℕ} (x : L) : ∀ (f : L [⋀^Fin n]→ₗ[A] M) (g : L [⋀^Fin m]→ₗ[A] M), ⁅x, mul n m l f g⁆ = mul _ _ _ (⁅x, f⁆) g + mul _ _ _ f (⁅x, g⁆) := by
   by_cases hnm : n + m = l
   case neg =>
     simp [mul_of_ne _ _ _ hnm]
@@ -142,6 +145,13 @@ theorem lie_mul {n m l : ℕ} (x : L) : ∀ (f : L [⋀^Fin n]→ₗ[A] A) (g : 
     rw [hm]
     simp [smul_sub]
     abel
+
+end
+
+section
+-- There is an opportunity for generalization, but we need a class about compatibility of LieRinehartPairs
+-- variable [CommRing M] [Algebra A M]
+-- variable [LieRinehartPair M L] [LieRinehartModule A L M]
 
 variable [LieRinehartModule.IsTrivial A L A]
 
@@ -196,6 +206,8 @@ theorem d_mul {n m l : ℕ} (f : L [⋀^Fin n]→ₗ[A] A) (g : L [⋀^Fin m]→
     simp [smul_sub, smul_smul, ←mul_pow, pow_succ]
     abel
 
+end
+
 end AlternatingMap
 
 namespace Cochain
@@ -204,7 +216,30 @@ variable {A L M : Type*}
 variable [CommRing A] [LieRing L] [LieRinehartPair A L]
 variable [CommRing M] [Algebra A M]
 
-variable [LieRinehartRing L M] [LieRinehartModule A L M] [LieRinehartModule.IsTrivial A L M]
+variable [LieRinehartRing L M] [LieRinehartModule A L M]
+
+instance : LieRinehartRing L (Cochain A L M) where
+  lier_one x := by
+    simp [one_def]
+    ext i v
+    cases i
+    case zero => simp
+    case succ n => simp [of_eq_of_ne]
+  lier_mul x f g := by
+    induction f using DirectSum.induction_on with
+    | zero => simp
+    | add f₁ f₂ hf₁ hf₂ => simp [add_mul, hf₁, hf₂]; abel
+    | of n f =>
+      induction g using DirectSum.induction_on with
+      | zero => simp
+      | add g₁ g₂ hg₁ hg₂ => simp [mul_add, hg₁, hg₂]; abel
+      | of m g =>
+        simp
+        rw [AlternatingMap.lie_mul x f g]
+        rw [map_add]
+        abel
+
+variable [LieRinehartModule.IsTrivial A L M]
 
 @[simp]
 theorem d_one : d 1 = (0 : Cochain A L M) := by
@@ -213,11 +248,6 @@ theorem d_one : d 1 = (0 : Cochain A L M) := by
   . cases h
     simp [one_def]
   . simp [one_def, of_eq_of_ne _ _ _ h]
-
--- TODO define `LieRinehartRing L (Cochain A L M)` instance
--- instance : LieRinehartRing L (Cochain A L M) where
---   lier_one := sorry
---   lier_mul := sorry
 
 end Cochain
 
