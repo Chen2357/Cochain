@@ -76,8 +76,6 @@ theorem ι_algebraMap (x : L) (f : M) :
   ι x (algebraMap M (Cochain A L M) f) = 0 := by
   simp [algebraMap_apply]
 
-section
-
 variable [LieRingModule L M] [LieRinehartModule A L M] [LieRinehartModule.IsTrivial A L M]
 
 @[simp]
@@ -93,18 +91,6 @@ theorem d_algebraMap_apply_one_apply (f : M) (v : Fin 1 → L) : d (algebraMap M
 theorem d_algebraMap_apply_ne (f : M) (n : ℕ) (hn : n ≠ 1) : d (algebraMap M (Cochain A L M) f) n = 0 := by
   simp [algebraMap_apply]
   rw [of_eq_of_ne _ _ _ hn]
-
-end
-
-variable [LieRinehartPair M L] [LieRinehartModule A L M] [LieRinehartModule.IsTrivial A L M]
-
-@[simp]
-theorem d_one : d 1 = (0 : Cochain A L M) := by
-  ext i v
-  by_cases h : i = 1
-  . cases h
-    simp [one_def]
-  . simp [one_def, of_eq_of_ne _ _ _ h]
 
 end
 
@@ -211,5 +197,28 @@ theorem d_mul {n m l : ℕ} (f : L [⋀^Fin n]→ₗ[A] A) (g : L [⋀^Fin m]→
     abel
 
 end AlternatingMap
+
+namespace Cochain
+
+variable {A L M : Type*}
+variable [CommRing A] [LieRing L] [LieRinehartPair A L]
+variable [CommRing M] [Algebra A M]
+
+variable [LieRinehartRing L M] [LieRinehartModule A L M] [LieRinehartModule.IsTrivial A L M]
+
+@[simp]
+theorem d_one : d 1 = (0 : Cochain A L M) := by
+  ext i v
+  by_cases h : i = 1
+  . cases h
+    simp [one_def]
+  . simp [one_def, of_eq_of_ne _ _ _ h]
+
+-- TODO define `LieRinehartRing L (Cochain A L M)` instance
+-- instance : LieRinehartRing L (Cochain A L M) where
+--   lier_one := sorry
+--   lier_mul := sorry
+
+end Cochain
 
 end
