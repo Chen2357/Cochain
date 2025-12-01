@@ -98,13 +98,12 @@ theorem one_def : (1 : Cochain A L M) = of _ 0 (constOfIsEmpty A L (Fin 0) 1) :=
 theorem one_apply_zero : (1 : Cochain A L M) 0 = constOfIsEmpty A L (Fin 0) 1 := rfl
 
 @[simp]
-theorem one_apply_ne_zero (n : ℕ) (hn : n ≠ 0) : (1 : Cochain A L M) n = 0 := by
-  rw [one_def]
-  rw [of_eq_of_ne]
-  exact hn
+theorem one_apply_succ (n : ℕ) : (1 : Cochain A L M) (n + 1) = 0 := rfl
 
 @[simp]
-theorem one_apply_succ (n : ℕ) : (1 : Cochain A L M) (n + 1) = 0 := rfl
+theorem one_apply_ne_zero (n : ℕ) (hn : n ≠ 0) : (1 : Cochain A L M) n = 0 := by
+  rw [one_def]
+  rw [of_eq_of_ne _ _ _ hn]
 
 instance : GAlgebra M (fun n => L [⋀^Fin n]→ₗ[A] M) where
   toFun := {
@@ -141,6 +140,11 @@ theorem algebraMap_apply_zero_apply (r : M) (v : Fin 0 → L) : algebraMap M (Co
 
 @[simp]
 theorem algebraMap_apply_succ (r : M) (n : ℕ) : algebraMap M (Cochain A L M) r (n + 1) = 0 := rfl
+
+@[simp]
+theorem algebraMap_apply_ne_zero (r : M) (n : ℕ) (hn : n ≠ 0) : algebraMap M (Cochain A L M) r n = 0 := by
+  rw [algebraMap_apply]
+  rw [of_eq_of_ne _ _ _ hn]
 
 variable [LieRingModule L M] [LieRinehartModule A L M]
 
