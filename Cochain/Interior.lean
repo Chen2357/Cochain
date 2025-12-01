@@ -6,8 +6,6 @@ open DirectSum
 
 namespace Cochain
 
-section AddMonoidHom
-
 variable {A L M : Type*}
 variable [CommRing A] [LieRing L] [LieRinehartPair A L]
 variable [AddCommGroup M] [Module A M]
@@ -122,46 +120,3 @@ theorem ι_lie (x : L) (y : L) (f : Cochain A L M) :
   ι x (⁅y, f⁆) = ⁅y, ι x f⁆ - ι ⁅y, x⁆ f := by
   rw [lie_ι]
   abel
-
-end AddMonoidHom
-
-section LinearMap
-
-def ιLinear {A L M : Type*}
-  [CommRing A] [LieRing L] [LieRinehartPair A L]
-  [CommRing M] [Algebra A M] (x : L) :
-  Cochain A L M →ₗ[M] Cochain A L M := {
-    toFun := ι x
-    map_add' := by simp
-    map_smul' m x := by
-      induction x using DirectSum.induction_on
-      case zero => simp
-      case add => simp [*]
-      case of n f =>
-        simp [←lof_eq_of M]
-        rw [←LinearMap.map_smul]
-        rw [lof_eq_of, lof_eq_of]
-        cases n
-        case zero => simp
-        case succ n =>
-          simp
-          simp [←lof_eq_of M]
-  }
-
-variable {A L M : Type*}
-variable [CommRing A] [LieRing L] [LieRinehartPair A L]
-variable [CommRing M] [Algebra A M]
-
-theorem ιLinear_eq_ι (x : L) (f : Cochain A L M) : ιLinear x f = ι x f := rfl
-
-@[simp]
-theorem ιLinear_of_zero (x : L) (f : L [⋀^Fin 0]→ₗ[A] M) :
-  ιLinear x (of _ 0 f) = 0 := by simp [ιLinear_eq_ι]
-
-@[simp]
-theorem ιLinear_of_succ (x : L) {n : ℕ} (f : L [⋀^Fin (n + 1)]→ₗ[A] M) :
-  ιLinear x (of _ (n + 1) f) = of _ n (f.curryLeft x) := by simp [ιLinear_eq_ι]
-
-end LinearMap
-
-end Cochain
