@@ -1,6 +1,7 @@
 import Cochain.Interior
 import Cochain.Differential
 import Cochain.Algebra
+import LieRinehart.Utilities.DirectSum
 
 open DirectSum
 
@@ -198,6 +199,56 @@ theorem d_mul {n m l : ℕ} (f : L [⋀^Fin n]→ₗ[A] A) (g : L [⋀^Fin m]→
 
 end AlternatingMap
 
+section
+
+namespace AlternatingMap
+
+variable {A L M : Type*}
+variable [CommRing A] [LieRing L] [LieRinehartPair A L]
+variable [CommRing M] [Algebra A M]
+variable [LieRinehartRing L M] [LieRinehartModule A L M]
+
+theorem lie_mul' {n m l : ℕ} (x : L) : ∀ (f : L [⋀^Fin n]→ₗ[A] M) (g : L [⋀^Fin m]→ₗ[A] M), ⁅x, mul n m l f g⁆ = mul _ _ _ (⁅x, f⁆) g + mul _ _ _ f (⁅x, g⁆) := by
+  by_cases hnm : n + m = l
+  case neg =>
+    simp [mul_of_ne _ _ _ hnm]
+  case pos =>
+  cases hnm
+  case refl =>
+  induction n, m using Nat.pincerRecursion
+  case Ha0 m =>
+    intros
+    ext
+    simp [lie_apply, mul_sub, Finset.mul_sum]
+    abel
+  case H0b n =>
+    have : 0 + n = n := by linarith
+    rw [this]
+    intros
+    ext
+    simp [lie_apply, mul_sub, Finset.mul_sum]
+    abel
+  case H n m hn hm =>
+    intros f g
+    apply eq_of_curryLeft
+    intro y
+    simp at *
+    have : n + (m + 1) = n + 1 + m := by linarith
+    apply this.recOn (motive := fun t _ => ⁅x, (((mul (n + 1) (m + 1) (t + 1)) f) g).curryLeft y⁆ -
+    (((mul (n + 1) (m + 1) (t + 1)) f) g).curryLeft ⁅x, y⁆ = (((mul (n + 1) (m + 1) (t + 1)) ⁅x, f⁆) g).curryLeft y +
+    (((mul (n + 1) (m + 1) (t + 1)) f) ⁅x, g⁆).curryLeft y)
+    simp
+    rw [hn]
+    have : n + 1 + m = n + (m + 1) := by linarith
+    rw [this] at hm
+    rw [hm]
+    simp [smul_sub]
+    abel
+
+end AlternatingMap
+
+end
+
 namespace Cochain
 
 variable {A L M : Type*}
@@ -214,10 +265,33 @@ theorem d_one : d 1 = (0 : Cochain A L M) := by
     simp [one_def]
   . simp [one_def, of_eq_of_ne _ _ _ h]
 
--- TODO define `LieRinehartRing L (Cochain A L M)` instance
--- instance : LieRinehartRing L (Cochain A L M) where
---   lier_one := sorry
---   lier_mul := sorry
+theorem lier_one (x : L) : ⁅x, (1 : Cochain A L M)⁆ = 0 := by
+  simp only [one_def]
+  rw [bracket_of]
+  ext i v
+  cases i
+  case zero =>
+    simp [AlternatingMap.lie_apply_zero, LieRinehartRing.lier_one]
+  case succ n =>
+    simp [of_eq_of_ne]
+
+theorem lier_mul (x : L) (f g : Cochain A L M) : ⁅x, f * g⁆ = f * ⁅x, g⁆ + ⁅x, f⁆ * g := by
+  induction f using DirectSum.induction_on with
+  | zero => simp
+  | add f₁ f₂ hf₁ hf₂ => simp [add_mul, hf₁, hf₂]; abel
+  | of n f =>
+    induction g using DirectSum.induction_on with
+    | zero => simp
+    | add g₁ g₂ hg₁ hg₂ => simp [mul_add, hg₁, hg₂]; abel
+    | of m g =>
+      simp only [mul_of, bracket_of]
+      rw [AlternatingMap.lie_mul' x f g]
+      rw [map_add]
+      abel
+
+instance : LieRinehartRing L (Cochain A L M) where
+  lier_one := lier_one
+  lier_mul := lier_mul
 
 end Cochain
 
