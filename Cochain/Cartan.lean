@@ -79,9 +79,18 @@ theorem ι_algebraMap (x : L) (f : M) :
 variable [LieRingModule L M] [LieRinehartModule A L M] [LieRinehartModule.IsTrivial A L M]
 
 @[simp]
-theorem d_algebraMap_apply_one_apply (f : M) (v : Fin 1 → L) :
-  d (algebraMap M (Cochain A L M) f) 1 v = ⁅v 0, f⁆ := by
+theorem d_algebraMap_apply_zero (f : M) : d (algebraMap M (Cochain A L M) f) 0 = 0 := by
   simp [algebraMap_apply]
+  exact of_eq_of_ne _ _ _ (by trivial)
+
+@[simp]
+theorem d_algebraMap_apply_one_apply (f : M) (v : Fin 1 → L) : d (algebraMap M (Cochain A L M) f) 1 v = ⁅v 0, f⁆ := by
+  simp [algebraMap_apply]
+
+@[simp]
+theorem d_algebraMap_apply_ne (f : M) (n : ℕ) (hn : n ≠ 1) : d (algebraMap M (Cochain A L M) f) n = 0 := by
+  simp [algebraMap_apply]
+  rw [of_eq_of_ne _ _ _ hn]
 
 end
 
