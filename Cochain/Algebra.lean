@@ -155,4 +155,11 @@ theorem lie_algebraMap (x : L) (f : M) : ⁅x, algebraMap M (Cochain A L M) f⁆
   case zero => simp
   case succ i => simp
 
+@[simp]
+theorem lie_smul_one (x : L) (f : M) : ⁅x, f • (1 : Cochain A L M)⁆ = ⁅x, f⁆ • 1 := by
+  ext i v
+  cases i
+  case zero => simp [DirectSum.smul_apply]
+  case succ i => simp [DirectSum.smul_apply]
+
 end Cochain
