@@ -163,3 +163,29 @@ theorem lie_smul_one (x : L) (f : M) : ⁅x, f • (1 : Cochain A L M)⁆ = ⁅x
   case succ i => simp [DirectSum.smul_apply]
 
 end Cochain
+
+section LieRinehartAlgebra
+
+variable (R A L M : Type*)
+variable [CommRing R]
+
+variable [CommRing A] [LieRing L] [LieRinehartPair A L]
+variable [Algebra R A] [LieAlgebra R L] [LieRinehartAlgebra R A L]
+
+variable [CommRing M] [Algebra A M]
+variable [Algebra R M] [IsScalarTower R A M]
+
+instance : Algebra R (Cochain A L M) := Algebra.compHom (Cochain A L M) (algebraMap R M)
+
+instance : SMulCommClass R M (Cochain A L M) where
+  smul_comm r s x := by
+    show (algebraMap R M r) • (s • x) = s • ((algebraMap R M r) • x)
+    rw [smul_smul, mul_comm, ←smul_smul]
+
+instance : IsScalarTower R M (Cochain A L M) where
+  smul_assoc c x y := by
+    show (c • x) • y = (algebraMap R M c) • (x • y)
+    simp [Algebra.smul_def]
+    rw [_root_.mul_assoc]
+
+end LieRinehartAlgebra
