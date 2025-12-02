@@ -175,17 +175,60 @@ variable [Algebra R A] [LieAlgebra R L] [LieRinehartAlgebra R A L]
 variable [CommRing M] [Algebra A M]
 variable [Algebra R M] [IsScalarTower R A M]
 
-instance : Algebra R (Cochain A L M) := Algebra.compHom (Cochain A L M) (algebraMap R M)
+instance : Algebra R (Cochain A L M) where
+  algebraMap := RingHom.comp (algebraMap M (Cochain A L M)) (algebraMap R M)
+  commutes' r x := by
+    induction x using DirectSum.induction_on
+    case zero => simp
+    case of n f =>
+      simp [Cochain.algebraMap_apply]
+      rw [show 0 + n = n from by linarith]
+      simp
+    case add =>
+      simp at *
+      simp [mul_add, add_mul, *]
+  smul_def' r x := by
+    simp
+    induction x using DirectSum.induction_on
+    case zero => simp
+    case of n f =>
+      simp [Cochain.algebraMap_apply]
+      rw [←DirectSum.lof_eq_of R, ←LinearMap.map_smul, DirectSum.lof_eq_of]
+      rw [show 0 + n = n from by linarith]
+      congr
+      ext v
+      simp [Algebra.smul_def]
+    case add =>
+      simp [mul_add, *]
 
 instance : SMulCommClass R M (Cochain A L M) where
   smul_comm r s x := by
-    show (algebraMap R M r) • (s • x) = s • ((algebraMap R M r) • x)
-    rw [smul_smul, mul_comm, ←smul_smul]
+    induction x using DirectSum.induction_on
+    case zero => simp
+    case of n f =>
+      conv_lhs =>
+        rw [←DirectSum.lof_eq_of M, ←LinearMap.map_smul, DirectSum.lof_eq_of]
+        rw [←DirectSum.lof_eq_of R, ←LinearMap.map_smul, DirectSum.lof_eq_of]
+      conv_rhs =>
+        rw [←DirectSum.lof_eq_of R, ←LinearMap.map_smul, DirectSum.lof_eq_of]
+        rw [←DirectSum.lof_eq_of M, ←LinearMap.map_smul, DirectSum.lof_eq_of]
+      congr
+      apply smul_comm
+    case add => simp [*]
 
 instance : IsScalarTower R M (Cochain A L M) where
   smul_assoc c x y := by
-    show (c • x) • y = (algebraMap R M c) • (x • y)
-    simp [Algebra.smul_def]
-    rw [_root_.mul_assoc]
+    induction y using DirectSum.induction_on
+    case zero => simp
+    case of n f =>
+      conv_lhs =>
+        rw [←DirectSum.lof_eq_of M, ←LinearMap.map_smul, DirectSum.lof_eq_of]
+      conv_rhs =>
+        rw [←DirectSum.lof_eq_of M, ←LinearMap.map_smul, DirectSum.lof_eq_of]
+        rw [←DirectSum.lof_eq_of R, ←LinearMap.map_smul, DirectSum.lof_eq_of]
+      congr
+      ext v
+      simp
+    case add => simp [*]
 
 end LieRinehartAlgebra
