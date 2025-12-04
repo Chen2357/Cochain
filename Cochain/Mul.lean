@@ -408,6 +408,7 @@ theorem mul_graded_comm {n m l} (f : L [⋀^Fin n]→ₗ[A] M) (g : L [⋀^Fin m
       use (1 + n + m + n * m)
       ring
 
+set_option maxHeartbeats 300000 in
 theorem mul_assoc {n m l i} (f : L [⋀^Fin n]→ₗ[A] M) (g : L [⋀^Fin m]→ₗ[A] M) (h : L [⋀^Fin l]→ₗ[A] M) :
   mul _ _ i (mul _ _ (n + m) f g) h = mul _ _ i f (mul _ _ (m + l) g h) := match n, m, l with
   | 0, 0, 0 => by

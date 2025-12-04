@@ -147,14 +147,14 @@ theorem lie_mul {n m l : ℕ} (x : L) : ∀ (f : L [⋀^Fin n]→ₗ[A] M) (g : 
   case Ha0 m =>
     intros
     ext
-    simp [lie_apply, mul_sub, Finset.mul_sum]
+    simp [lie_apply, mul_sub, Finset.mul_sum, lier_mul]
     abel
   case H0b n =>
     have : 0 + n = n := by linarith
     rw [this]
     intros
     ext
-    simp [lie_apply, mul_sub, Finset.mul_sum]
+    simp [lie_apply, mul_sub, Finset.mul_sum, lier_mul]
     abel
   case H n m hn hm =>
     intros f g
@@ -186,7 +186,7 @@ theorem d_smul {n : ℕ} (x : A) (f : L [⋀^Fin n]→ₗ[A] A) : d (x • f) = 
   induction n
   case zero =>
     ext
-    simp
+    simp [lier_mul]
     ring
   case succ n ih =>
     apply eq_of_curryLeft
